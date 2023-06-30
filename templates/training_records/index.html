@@ -1,0 +1,46 @@
+{% extends "training_records/base.html" %}
+
+{% block content %}
+    <h3>What activity did you do?</h3>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Submit">
+        </form>
+
+    <h3>Activity</h3>
+    {% if latest_training_list %}
+        <ul>
+        {% for training in latest_training_list %}
+            <li>{{ training.activity }}
+                <button class="delete-button" data-pk="{{ training.pk }}">X</button>
+                <a href="{% url 'training_records:update' training.pk %}">Update</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No trainings are available.</p>
+    {% endif %}
+
+    <script>
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function() {
+            var pk = this.getAttribute('data-pk');
+
+            fetch(`/training_records/delete/${pk}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({'pk': pk})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) location.reload();
+            });
+        });
+    });
+    </script>
+
+{% endblock %}
